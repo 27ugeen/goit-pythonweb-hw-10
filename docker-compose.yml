@@ -1,0 +1,60 @@
+# version: "3.9"
+
+# services:
+#   app:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile
+#     container_name: fastapi_app
+#     restart: always
+#     ports:
+#       - "8000:8000"
+#     volumes:
+#       - .:/app
+#     env_file:
+#       - .env
+#     depends_on:
+#       - db
+
+#   db:
+#     image: postgres:15
+#     container_name: postgres_db
+#     restart: always
+#     environment:
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: mysecretpassword
+#       POSTGRES_DB: contacts_db
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+
+# volumes:
+#   postgres_data:
+
+version: "3.8"
+services:
+  postgres_db:
+    image: postgres:15
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: contacts_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  fastapi_app:
+    build: .
+    container_name: fastapi_app
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://postgres:mysecretpassword@postgres_db:5432/contacts_db
+    depends_on:
+      - postgres_db
+    ports:
+      - "8000:8000"
+
+volumes:
+  postgres_data:
