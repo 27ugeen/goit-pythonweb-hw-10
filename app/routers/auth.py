@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
@@ -8,7 +8,17 @@ from app.email_utils import send_verification_email
 from app.models import User
 from app import crud, schemas
 
+from slowapi.util import get_remote_address
+from slowapi import Limiter
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from app.schemas import UserResponse
+from settings import settings
+
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+limiter = Limiter(key_func=get_remote_address)
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 class LoginRequest(BaseModel):
     email: str
@@ -18,13 +28,34 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str
 
-@router.post("/token", response_model=TokenResponse)
-def login(request: LoginRequest, db: Session = Depends(get_db)):
-    user = crud.get_user_by_email(db, request.email)
-    if not user or not verify_password(request.password, user.hashed_password):
+@router.get("/me", response_model=UserResponse)
+@limiter.limit("5/minute")
+async def get_me(
+    request: Request,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+):
+    payload = decode_access_token(token)
+    email = payload.get("sub")
+    if not email:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user
+
+@router.post("/token")
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    user = crud.get_user_by_email(db, form_data.username)
+    if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
+            detail="Invalid username or password",
         )
     access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}

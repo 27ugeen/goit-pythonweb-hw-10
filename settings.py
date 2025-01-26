@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     MAIL_SSL_TLS: bool = False
     USE_CREDENTIALS: bool = True
     VALIDATE_CERTS: bool = True
-
+    RATE_LIMIT_GLOBAL: str = "10/minute"
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
