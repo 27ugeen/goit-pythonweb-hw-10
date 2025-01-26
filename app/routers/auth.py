@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Request
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Request, File, UploadFile
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
@@ -7,6 +7,7 @@ from app.auth import create_access_token, decode_access_token
 from app.email_utils import send_verification_email
 from app.models import User
 from app import crud, schemas
+from app.cloudinary_utils import upload_avatar
 
 from slowapi.util import get_remote_address
 from slowapi import Limiter
@@ -27,6 +28,28 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
+
+@router.post("/upload-avatar", status_code=200)
+async def upload_user_avatar(
+    token: str = Depends(oauth2_scheme),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    payload = decode_access_token(token)
+    email = payload.get("sub")
+    if not email:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    avatar_url = upload_avatar(file, public_id=f"user_{user.id}")
+
+    user.avatar_url = avatar_url
+    db.commit()
+
+    return {"avatar_url": avatar_url}
 
 @router.get("/me", response_model=UserResponse)
 @limiter.limit("5/minute")

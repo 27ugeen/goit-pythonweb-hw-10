@@ -19,3 +19,4 @@ slowapi==0.1.9
 python-multipart==0.0.20
 aiosmtplib==3.0.2
 uvicorn==0.23.2
+cloudinary==1.42.1

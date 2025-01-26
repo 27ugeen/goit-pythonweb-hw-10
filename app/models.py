@@ -23,5 +23,6 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_verified = Column(Boolean, default=False)
+    avatar_url = Column(String)
 
     contacts = relationship("Contact", back_populates="user")

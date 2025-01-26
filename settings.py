@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     USE_CREDENTIALS: bool = True
     VALIDATE_CERTS: bool = True
     RATE_LIMIT_GLOBAL: str = "10/minute"
+    CLOUDINARY_CLOUD_NAME: str
+    CLOUDINARY_API_KEY: str
+    CLOUDINARY_API_SECRET: str
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
