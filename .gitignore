@@ -1,0 +1,57 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Environment variables
+.env
+
+# macOS system files
+.DS_Store
+
+# Python virtual environment
+venv/
+env/
+
+# SQLAlchemy/Migrations
+alembic.ini
+migrations/
+
+# Logs
+*.log
+logs/
+
+# Database files
+*.sqlite3
+*.db
+
+# Pytest and coverage
+.pytest_cache/
+coverage/
+.coverage
+htmlcov/
+
+# FastAPI specific
+*.db-journal
+
+# Docker
+*.pid
+*.seed
+docker-compose.override.yml
+
+# VS Code specific
+.vscode/
+
+# JetBrains IDEs
+.idea/
+
+# Python packaging
+*.egg-info/
+dist/
+build/
+
+# Pyre (static type checker)
+.pyre/
